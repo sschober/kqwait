@@ -1,29 +1,29 @@
-= kqwait =
+# kqwait
 
 Waits for write on a file and returns.
 
 Inspired by inotifywait [1] and the original kqueue paper [2].
 
-== Requirements ==
+## Requirements
 
  - Mac OS X
  - Xcode installed
 
-== Build ==
+## Build
 
 To build this just type
 
-   make kqwait
+    make kqwait
 
-== Usage ==
+## Usage
 
 Use it in a shell script like this:
 
-   while ./kqwait text.txt; do
-      # do some stuff on write
-   done
+    while ./kqwait text.txt; do
+       # do some stuff on write
+    done
 
-= Author =
+# Author
 
 Sven Schober <sven.schober@uni-ulm.de>
 
