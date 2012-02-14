@@ -21,27 +21,32 @@
  * [2]: http://people.freebsd.org/~jlemon/papers/kqueue.pdf
  */
 
+#define TARGET_EVTS NOTE_RENAME|NOTE_WRITE
+
 int main(int argc, char** argv){
 
   if(2 > argc){
-    printf("usage: %s <file>\n", argv[0]);
+    printf("usage: %s <file> [ <file>]+\n", argv[0]);
     return 1;
   }
 
-  struct kevent ev;
+  int filesCount = argc - 1;
 
-  int fd = open(argv[1], O_RDONLY);
-  if( -1 == fd) {
-    perror(NULL);
-    return -1;
+  struct kevent ev[filesCount];
+
+  for(int i = 0; i < filesCount; i++){
+    int fd = open(argv[i+1], O_RDONLY);
+    if( -1 == fd) {
+      perror(NULL);
+      return -1;
+    }
+    EV_SET(&ev[i], fd, EVFILT_VNODE,
+	EV_ADD | EV_ENABLE | EV_CLEAR,
+	TARGET_EVTS, 0, 0);
   }
 
   int kq = kqueue();
 
-  EV_SET(&ev, fd, EVFILT_VNODE,
-      EV_ADD | EV_ENABLE | EV_CLEAR,
-      NOTE_WRITE, 0, 0);
-
   return
-    kevent(kq, &ev, 1, &ev, 1, NULL) > 0 ? 0 : 1;
+    kevent(kq, ev, filesCount, ev, 1, NULL) > 0 ? 0 : 1;
 }
