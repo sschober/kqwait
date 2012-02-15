@@ -1,7 +1,10 @@
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/event.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <dirent.h>
 
 /*
  * Waits for write on a file and returns.
@@ -48,14 +51,32 @@ int main(int argc, char** argv){
   struct kevent ev[filesCount];
 
   for(int i = 0; i < filesCount; i++){
-    int fd = open(argv[i+1], O_RDONLY);
+    char *filePath = argv[i+1];
+
+    int fd = open(filePath, O_RDONLY);
     if( -1 == fd) {
-      perror(NULL);
+      perror("open");
       return -1;
     }
+
+    struct stat sb;
+    if( stat( filePath, &sb) == -1 ){
+      perror("stat");
+      exit(EXIT_FAILURE);
+    }
+    if( S_ISDIR( sb.st_mode) ){
+      /* read dir contents */
+      fprintf(stderr, "path %s is a directory, reading contents...\n", filePath);
+      DIR* dp;
+      if( ( dp = fdopendir(fd) == NULL ) ){
+	perror("fdopendir");
+	exit(EXIT_FAILURE);
+      }
+    }
+
     EV_SET(&ev[i], fd, EVFILT_VNODE,
 	EV_ADD | EV_ENABLE | EV_CLEAR,
-	TARGET_EVTS, 0, argv[i+1]);
+	TARGET_EVTS, 0, filePath);
   }
 
   int kq = kqueue();
@@ -70,7 +91,7 @@ int main(int argc, char** argv){
   }
   else{
     fprintf(stderr, "result: %d\n", result);
-    perror(NULL);
+    perror("kevent");
   }
   return 1;
 }
