@@ -14,7 +14,7 @@
  *
  * Use it like this:
  *
- *    ./kqwait test.txt
+ *    ./kqwait test.txt test2.txt
  *
  *
  * [1]: https://github.com/rvoicilas/inotify-tools/wiki/
@@ -42,11 +42,27 @@ int main(int argc, char** argv){
     }
     EV_SET(&ev[i], fd, EVFILT_VNODE,
 	EV_ADD | EV_ENABLE | EV_CLEAR,
-	TARGET_EVTS, 0, 0);
+	TARGET_EVTS, 0, argv[i+1]);
   }
 
   int kq = kqueue();
 
-  return
-    kevent(kq, ev, filesCount, ev, 1, NULL) > 0 ? 0 : 1;
+  int result =
+    kevent(kq, ev, filesCount, ev, 1, NULL);
+
+  if( result > 0 ){
+    fprintf(stdout, "%s\n", ev[0].udata);
+    fprintf(stderr, "%d %d %s %s\n",
+	result,
+	ev[0].ident,
+	ev[0].fflags & NOTE_RENAME ? "REN" : "",
+	ev[0].fflags & NOTE_WRITE  ? "WRT" : ""
+	);
+    return 0;
+  }
+  else{
+    fprintf(stderr, "result: %d\n", result);
+    perror(NULL);
+  }
+  return 1;
 }
