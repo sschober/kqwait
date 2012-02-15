@@ -21,7 +21,20 @@
  * [2]: http://people.freebsd.org/~jlemon/papers/kqueue.pdf
  */
 
+#define DEBUG 1
+
 #define TARGET_EVTS NOTE_RENAME|NOTE_WRITE
+
+void debug(int result, struct kevent* ev){
+  if(DEBUG){
+    fprintf(stderr, "%d %d %s %s\n",
+	result,
+	(int) ev[0].ident,
+	ev[0].fflags & NOTE_RENAME ? "REN" : "",
+	ev[0].fflags & NOTE_WRITE  ? "WRT" : ""
+	);
+  }
+}
 
 int main(int argc, char** argv){
 
@@ -51,13 +64,8 @@ int main(int argc, char** argv){
     kevent(kq, ev, filesCount, ev, 1, NULL);
 
   if( result > 0 ){
-    fprintf(stdout, "%s\n", ev[0].udata);
-    fprintf(stderr, "%d %d %s %s\n",
-	result,
-	ev[0].ident,
-	ev[0].fflags & NOTE_RENAME ? "REN" : "",
-	ev[0].fflags & NOTE_WRITE  ? "WRT" : ""
-	);
+    fprintf(stdout, "%s\n", (char*) ev[0].udata);
+    debug(result, ev);
     return 0;
   }
   else{
