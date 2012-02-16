@@ -9,7 +9,7 @@ ifeq "$(uname)" "Linux"
   LIBS=-lkqueue -lpthread
 endif
 
-OPTS=$(INCLUDES) $(LIBS) -std=c99 -Wall
+OPTS=$(INCLUDES) $(LIBS) -std=c99 -Wall -g
 
 .PHONY: clean
 
