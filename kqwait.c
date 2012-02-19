@@ -93,7 +93,10 @@ dirInfo* intersect( dirInfo *di1, dirInfo *di2 ){
   dirInfo *iter = di1;
   dirInfo *other = di2;
 
-  if( NULL == di1 || (di2->count > di1->count) ){
+  if( NULL == di1 ) return di2;
+  if( NULL == di2 ) return di1;
+
+  if( di2->count > di1->count ){
     iter = di2;
     other = di1;
   }
@@ -188,7 +191,11 @@ int main(int argc, char** argv){
       if( DEBUG ) printDirInfo( diAfter );
       if( DEBUG ) printDirInfo( diIntersect );
       if( diIntersect->count > 0 )
-	fprintf(stdout, "%s %s/%s\n", ndip->di->count > diAfter->count ? "-" : "+",
+	fprintf(stdout, "%s %s/%s\n",
+	    ( (NULL != ndip->di && NULL != diAfter &&
+	     (ndip->di->count > diAfter->count)) ||
+	     (NULL != ndip->di && NULL == diAfter)
+	     ) ? "-" : "+",
 	    ndip->path,
 	    diIntersect->entries[0]);
     }
