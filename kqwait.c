@@ -26,7 +26,7 @@
  */
 
 #ifndef DEBUG
-#define DEBUG 0
+#define DEBUG 1
 #endif
 
 #define TARGET_EVTS NOTE_RENAME|NOTE_WRITE
@@ -46,6 +46,11 @@ typedef struct {
   int count;
   char** entries;
 } dirInfo;
+
+typedef struct {
+  char* path;
+  dirInfo* di;
+} namedDirInfo;
 
 void printDirInfo( dirInfo *di ){
   if( NULL == di ) return;
@@ -68,20 +73,27 @@ dirInfo* addEntry( dirInfo* di, char* entry ){
 }
 
 int contains(dirInfo *di, char* entry){
-  for(int i = 0; i < di->count; i++){
-    if( 0 == strcmp(di->entries[i], entry) ){
-      return 1;
+  if(NULL != di){
+    for(int i = 0; i < di->count; i++){
+      if( 0 == strcmp(di->entries[i], entry) ){
+	return 1;
+      }
     }
   }
   return 0;
 }
 
+/**
+ * this function is actually a misnomer, as it does not compute the
+ * intersection but the rest that stays, when you substract the
+ * intersection from the union of both sets.
+ */
 dirInfo* intersect( dirInfo *di1, dirInfo *di2 ){
   dirInfo *result = NULL;
   dirInfo *iter = di1;
   dirInfo *other = di2;
 
-  if( di2->count > di1->count){
+  if( NULL == di1 || (di2->count > di1->count) ){
     iter = di2;
     other = di1;
   }
@@ -124,10 +136,13 @@ int main(int argc, char** argv){
 
   struct stat sb;
 
+  namedDirInfo ndi[filesCount];
+
   dirInfo *diBefore, *diAfter, *diIntersect;
 
   for(int i = 0; i < filesCount; i++){
     char *filePath = argv[i+1];
+    void *data;
 
     int fd = -1;
 
@@ -137,7 +152,12 @@ int main(int argc, char** argv){
     }
     if( S_ISDIR( sb.st_mode) ){
       diBefore = parseDir( filePath );
+      ndi[i].path = filePath;
+      ndi[i].di = diBefore;
+      data = &ndi[i];
     }
+    else
+      data = filePath;
 
     if( -1 == fd ){
       fd = open(filePath, O_RDONLY);
@@ -149,7 +169,7 @@ int main(int argc, char** argv){
 
     EV_SET(&ev[i], fd, EVFILT_VNODE,
 	EV_ADD | EV_ENABLE | EV_CLEAR,
-	TARGET_EVTS, 0, filePath);
+	TARGET_EVTS, 0, data);
   }
 
   int kq = kqueue();
@@ -160,14 +180,16 @@ int main(int argc, char** argv){
   if( result > 0 ){
     debug(result, ev);
     if( S_ISDIR( sb.st_mode ) ){
-      diAfter = parseDir( (char*) ev[0].udata );
-      diIntersect = intersect(diBefore, diAfter);
-      if( DEBUG ) printDirInfo( diBefore );
+      namedDirInfo *ndip;
+      ndip = ev[0].udata;
+      diAfter = parseDir( (char*) ndip->path);
+      diIntersect = intersect(ndip->di, diAfter);
+      if( DEBUG ) printDirInfo( ndip->di );
       if( DEBUG ) printDirInfo( diAfter );
       if( DEBUG ) printDirInfo( diIntersect );
       if( diIntersect->count > 0 )
-	fprintf(stdout, "%s %s%s\n", diBefore->count > diAfter->count ? "-" : "+",
-	    (char*) ev[0].udata,
+	fprintf(stdout, "%s %s/%s\n", ndip->di->count > diAfter->count ? "-" : "+",
+	    ndip->path,
 	    diIntersect->entries[0]);
     }
     else
