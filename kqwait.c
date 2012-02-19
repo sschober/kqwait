@@ -191,12 +191,20 @@ int main(int argc, char** argv){
       if( DEBUG ) printDirInfo( diAfter );
       if( DEBUG ) printDirInfo( diIntersect );
       if( diIntersect->count > 0 )
-	fprintf(stdout, "%s %s/%s\n",
-	    ( (NULL != ndip->di && NULL != diAfter &&
-	     (ndip->di->count > diAfter->count)) ||
+	fprintf(stdout, "%s %s%s%s\n",
+	    (
+	     // dir was non empty before and is non empty after
+	     (NULL != ndip->di && NULL != diAfter &&
+		// some thing has gone, iff #entries decreased
+		(ndip->di->count > diAfter->count))
+	     ||
+	     // dir was non empty before and is empty after
+	     // -> something is gone
 	     (NULL != ndip->di && NULL == diAfter)
-	     ) ? "-" : "+",
+	    ) ? "-" : "+",
 	    ndip->path,
+	    // if path does not end with '/' insert one
+	    ('/' == ndip->path[strlen(ndip->path)-1]) ? "" : "/",
 	    diIntersect->entries[0]);
     }
     else
