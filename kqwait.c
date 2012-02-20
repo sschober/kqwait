@@ -26,7 +26,7 @@
  */
 
 #ifndef DEBUG
-#define DEBUG 1
+#define DEBUG 0
 #endif
 
 #define TARGET_EVTS NOTE_RENAME|NOTE_WRITE
@@ -187,9 +187,11 @@ int main(int argc, char** argv){
       ndip = ev[0].udata;
       diAfter = parseDir( (char*) ndip->path);
       diIntersect = intersect(ndip->di, diAfter);
-      if( DEBUG ) printDirInfo( ndip->di );
-      if( DEBUG ) printDirInfo( diAfter );
-      if( DEBUG ) printDirInfo( diIntersect );
+      if( DEBUG ) {
+	printDirInfo( ndip->di );
+	printDirInfo( diAfter );
+	printDirInfo( diIntersect );
+      }
       if( diIntersect->count > 0 )
 	fprintf(stdout, "%s %s%s%s\n",
 	    (

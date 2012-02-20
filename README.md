@@ -1,6 +1,6 @@
 # kqwait
 
-Waits for write/rename event on a file or directory and returns.
+Waits for write/rename events on files or directories and returns.
 
 Supports waiting on multiple files and _one_ directory (i'm on it).
 When waiting on a directory adding a file, or deleting a file will
@@ -21,7 +21,7 @@ knowledge) on Mac OS X.
 
  - http://mark.heily.com/libkqueue/
 
-Waiting on a directory does not work on Linux.
+Waiting on directories does not work on Linux at the moment.
 
 ## Build
 
@@ -39,9 +39,9 @@ Call it like this
 
 or this
 
-    kqwait <dir>
+    kqwait <dir>[ <dir>]+
 
-Prints the file or directory that cause the tool to wake up and
+Prints the file or directory that caused the tool to wake up and
 returns `0` if the expected event occured, `1` otherwise.
 
 When waiting on a dir a `+` character is prepended if a file was
@@ -53,12 +53,18 @@ Use it in a shell script like this:
        # do some stuff on write
     done
 
-Or watch a directory like this:
+Or watch directories like this:
 
-    $ while ./kqwait somedir; do true; done
-    + a_file_was_added.txt
-    - a_file_was_deleted.txt
+    $ while ./kqwait somedir someother; do true; done
+    + somedir/a_file_was_added.txt
+    - someotherdir/a_file_was_deleted.txt
 
+## Note
+
+There is (at least) one race condition in this code, when waiting
+for changes on directories. If several events happen on a directory
+in quick succession, this tool might catch an intermediate snapshot
+of that chain of events.
 
 # Author
 
