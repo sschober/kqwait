@@ -192,7 +192,7 @@ int main(int argc, char** argv){
         printDirInfo( diAfter );
         printDirInfo( diIntersect );
       }
-      if( diIntersect->count > 0 )
+      if( NULL != diIntersect && diIntersect->count > 0 )
         fprintf(stdout, "%s %s%s%s\n",
             (
              // dir was non empty before and is non empty after
@@ -208,6 +208,8 @@ int main(int argc, char** argv){
             // if path does not end with '/' insert one
             ('/' == ndip->path[strlen(ndip->path)-1]) ? "" : "/",
 	    diIntersect->entries[0]);
+      else
+        fprintf(stdout, "%s\n", ndip->path);
     }
     else
       fprintf(stdout, "%s\n", (char*) ev[0].udata);
