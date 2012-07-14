@@ -84,11 +84,11 @@ int contains(dirInfo *di, char* entry){
 }
 
 /**
- * this function is actually a misnomer, as it does not compute the
- * intersection but the rest that stays, when you substract the
- * intersection from the union of both sets.
+ * Compute the symmetric set difference of the contents of
+ * two folders. (That is, it returns what is left over when
+ * you subtract the intersection from the union.)
  */
-dirInfo* intersect( dirInfo *di1, dirInfo *di2 ){
+dirInfo* symmetricDifference( dirInfo *di1, dirInfo *di2 ){
   dirInfo *result = NULL;
   dirInfo *iter = di1;
   dirInfo *other = di2;
@@ -141,7 +141,7 @@ int main(int argc, char** argv){
 
   namedDirInfo ndi[filesCount];
 
-  dirInfo *diBefore, *diAfter, *diIntersect;
+  dirInfo *diBefore, *diAfter, *diDifference;
 
   for(int i = 0; i < filesCount; i++){
     char *filePath = argv[i+1];
@@ -186,13 +186,13 @@ int main(int argc, char** argv){
       namedDirInfo *ndip;
       ndip = ev[0].udata;
       diAfter = parseDir( (char*) ndip->path);
-      diIntersect = intersect(ndip->di, diAfter);
+      diDifference = symmetricDifference(ndip->di, diAfter);
       if( DEBUG ) {
         printDirInfo( ndip->di );
         printDirInfo( diAfter );
-        printDirInfo( diIntersect );
+        printDirInfo( diDifference );
       }
-      if( NULL != diIntersect && diIntersect->count > 0 )
+      if( NULL != diDifference && diDifference->count > 0 )
         fprintf(stdout, "%s %s%s%s\n",
             (
              // dir was non empty before and is non empty after
@@ -207,7 +207,7 @@ int main(int argc, char** argv){
             ndip->path,
             // if path does not end with '/' insert one
             ('/' == ndip->path[strlen(ndip->path)-1]) ? "" : "/",
-	    diIntersect->entries[0]);
+	    diDifference->entries[0]);
       else
         fprintf(stdout, "%s\n", ndip->path);
     }
