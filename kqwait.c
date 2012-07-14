@@ -34,11 +34,11 @@
 void debug(int result, struct kevent* ev){
   if(DEBUG){
     fprintf(stderr, "%d %d %s %s\n",
-	result,
-	(int) ev[0].ident,
-	ev[0].fflags & NOTE_RENAME ? "REN" : "",
-	ev[0].fflags & NOTE_WRITE  ? "WRT" : ""
-	);
+        result,
+        (int) ev[0].ident,
+        ev[0].fflags & NOTE_RENAME ? "REN" : "",
+        ev[0].fflags & NOTE_WRITE  ? "WRT" : ""
+        );
   }
 }
 
@@ -76,7 +76,7 @@ int contains(dirInfo *di, char* entry){
   if(NULL != di){
     for(int i = 0; i < di->count; i++){
       if( 0 == strcmp(di->entries[i], entry) ){
-	return 1;
+        return 1;
       }
     }
   }
@@ -165,14 +165,14 @@ int main(int argc, char** argv){
     if( -1 == fd ){
       fd = open(filePath, O_RDONLY);
       if( -1 == fd) {
-	perror("open");
-	return -1;
+        perror("open");
+        return -1;
       }
     }
 
     EV_SET(&ev[i], fd, EVFILT_VNODE,
-	EV_ADD | EV_ENABLE | EV_CLEAR,
-	TARGET_EVTS, 0, data);
+        EV_ADD | EV_ENABLE | EV_CLEAR,
+        TARGET_EVTS, 0, data);
   }
 
   int kq = kqueue();
@@ -188,25 +188,25 @@ int main(int argc, char** argv){
       diAfter = parseDir( (char*) ndip->path);
       diIntersect = intersect(ndip->di, diAfter);
       if( DEBUG ) {
-	printDirInfo( ndip->di );
-	printDirInfo( diAfter );
-	printDirInfo( diIntersect );
+        printDirInfo( ndip->di );
+        printDirInfo( diAfter );
+        printDirInfo( diIntersect );
       }
       if( diIntersect->count > 0 )
-	fprintf(stdout, "%s %s%s%s\n",
-	    (
-	     // dir was non empty before and is non empty after
-	     (NULL != ndip->di && NULL != diAfter &&
-		// some thing has gone, iff #entries decreased
-		(ndip->di->count > diAfter->count))
-	     ||
-	     // dir was non empty before and is empty after
-	     // -> something is gone
-	     (NULL != ndip->di && NULL == diAfter)
-	    ) ? "-" : "+",
-	    ndip->path,
-	    // if path does not end with '/' insert one
-	    ('/' == ndip->path[strlen(ndip->path)-1]) ? "" : "/",
+        fprintf(stdout, "%s %s%s%s\n",
+            (
+             // dir was non empty before and is non empty after
+             (NULL != ndip->di && NULL != diAfter &&
+                // some thing has gone, iff #entries decreased
+                (ndip->di->count > diAfter->count))
+             ||
+             // dir was non empty before and is empty after
+             // -> something is gone
+             (NULL != ndip->di && NULL == diAfter)
+            ) ? "-" : "+",
+            ndip->path,
+            // if path does not end with '/' insert one
+            ('/' == ndip->path[strlen(ndip->path)-1]) ? "" : "/",
 	    diIntersect->entries[0]);
     }
     else
