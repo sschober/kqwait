@@ -29,15 +29,16 @@
 #define DEBUG 0
 #endif
 
-#define TARGET_EVTS NOTE_RENAME|NOTE_WRITE
+#define TARGET_EVTS NOTE_RENAME|NOTE_WRITE|NOTE_DELETE
 
 void debug(int result, struct kevent* ev){
   if(DEBUG){
-    fprintf(stderr, "%d %d %s %s\n",
+    fprintf(stderr, "%d %d %s %s %s\n",
         result,
         (int) ev[0].ident,
         ev[0].fflags & NOTE_RENAME ? "REN" : "",
-        ev[0].fflags & NOTE_WRITE  ? "WRT" : ""
+        ev[0].fflags & NOTE_WRITE  ? "WRT" : "",
+        ev[0].fflags & NOTE_DELETE ? "DEL" : ""
         );
   }
 }
@@ -185,31 +186,35 @@ int main(int argc, char** argv){
     if( S_ISDIR( sb.st_mode ) ){
       namedDirInfo *ndip;
       ndip = ev[0].udata;
-      diAfter = parseDir( (char*) ndip->path);
-      diDifference = symmetricDifference(ndip->di, diAfter);
-      if( DEBUG ) {
-        printDirInfo( ndip->di );
-        printDirInfo( diAfter );
-        printDirInfo( diDifference );
+      if( ev[0].fflags & NOTE_DELETE )
+        fprintf(stdout, "- %s\n", ndip->path);
+      else {
+        diAfter = parseDir( (char*) ndip->path);
+        diDifference = symmetricDifference(ndip->di, diAfter);
+        if( DEBUG ) {
+          printDirInfo( ndip->di );
+          printDirInfo( diAfter );
+          printDirInfo( diDifference );
+        }
+        else if( NULL != diDifference && diDifference->count > 0 )
+          fprintf(stdout, "%s %s%s%s\n",
+              (
+               // dir was non empty before and is non empty after
+               (NULL != ndip->di && NULL != diAfter &&
+                  // some thing has gone, iff #entries decreased
+                  (ndip->di->count > diAfter->count))
+               ||
+               // dir was non empty before and is empty after
+               // -> something is gone
+               (NULL != ndip->di && NULL == diAfter)
+              ) ? "-" : "+",
+              ndip->path,
+              // if path does not end with '/' insert one
+              ('/' == ndip->path[strlen(ndip->path)-1]) ? "" : "/",
+              diDifference->entries[0]);
+        else
+          fprintf(stdout, "%s\n", ndip->path);
       }
-      if( NULL != diDifference && diDifference->count > 0 )
-        fprintf(stdout, "%s %s%s%s\n",
-            (
-             // dir was non empty before and is non empty after
-             (NULL != ndip->di && NULL != diAfter &&
-                // some thing has gone, iff #entries decreased
-                (ndip->di->count > diAfter->count))
-             ||
-             // dir was non empty before and is empty after
-             // -> something is gone
-             (NULL != ndip->di && NULL == diAfter)
-            ) ? "-" : "+",
-            ndip->path,
-            // if path does not end with '/' insert one
-            ('/' == ndip->path[strlen(ndip->path)-1]) ? "" : "/",
-	    diDifference->entries[0]);
-      else
-        fprintf(stdout, "%s\n", ndip->path);
     }
     else
       fprintf(stdout, "%s\n", (char*) ev[0].udata);
