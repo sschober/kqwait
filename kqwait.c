@@ -29,16 +29,17 @@
 #define DEBUG 0
 #endif
 
-#define TARGET_EVTS NOTE_RENAME|NOTE_WRITE
+#define TARGET_EVTS NOTE_RENAME|NOTE_WRITE|NOTE_DELETE
 
 void debug(int result, struct kevent* ev){
   if(DEBUG){
-    fprintf(stderr, "%d %d %s %s\n",
-	result,
-	(int) ev[0].ident,
-	ev[0].fflags & NOTE_RENAME ? "REN" : "",
-	ev[0].fflags & NOTE_WRITE  ? "WRT" : ""
-	);
+    fprintf(stderr, "%d %d %s %s %s\n",
+        result,
+        (int) ev[0].ident,
+        ev[0].fflags & NOTE_RENAME ? "REN" : "",
+        ev[0].fflags & NOTE_WRITE  ? "WRT" : "",
+        ev[0].fflags & NOTE_DELETE ? "DEL" : ""
+        );
   }
 }
 
@@ -76,7 +77,7 @@ int contains(dirInfo *di, char* entry){
   if(NULL != di){
     for(int i = 0; i < di->count; i++){
       if( 0 == strcmp(di->entries[i], entry) ){
-	return 1;
+        return 1;
       }
     }
   }
@@ -84,11 +85,11 @@ int contains(dirInfo *di, char* entry){
 }
 
 /**
- * this function is actually a misnomer, as it does not compute the
- * intersection but the rest that stays, when you substract the
- * intersection from the union of both sets.
+ * Compute the symmetric set difference of the contents of
+ * two folders. (That is, it returns what is left over when
+ * you subtract the intersection from the union.)
  */
-dirInfo* intersect( dirInfo *di1, dirInfo *di2 ){
+dirInfo* symmetricDifference( dirInfo *di1, dirInfo *di2 ){
   dirInfo *result = NULL;
   dirInfo *iter = di1;
   dirInfo *other = di2;
@@ -141,7 +142,7 @@ int main(int argc, char** argv){
 
   namedDirInfo ndi[filesCount];
 
-  dirInfo *diBefore, *diAfter, *diIntersect;
+  dirInfo *diBefore, *diAfter, *diDifference;
 
   for(int i = 0; i < filesCount; i++){
     char *filePath = argv[i+1];
@@ -165,14 +166,14 @@ int main(int argc, char** argv){
     if( -1 == fd ){
       fd = open(filePath, O_RDONLY);
       if( -1 == fd) {
-	perror("open");
-	return -1;
+        perror("open");
+        return -1;
       }
     }
 
     EV_SET(&ev[i], fd, EVFILT_VNODE,
-	EV_ADD | EV_ENABLE | EV_CLEAR,
-	TARGET_EVTS, 0, data);
+        EV_ADD | EV_ENABLE | EV_CLEAR,
+        TARGET_EVTS, 0, data);
   }
 
   int kq = kqueue();
@@ -185,29 +186,35 @@ int main(int argc, char** argv){
     if( S_ISDIR( sb.st_mode ) ){
       namedDirInfo *ndip;
       ndip = ev[0].udata;
-      diAfter = parseDir( (char*) ndip->path);
-      diIntersect = intersect(ndip->di, diAfter);
-      if( DEBUG ) {
-	printDirInfo( ndip->di );
-	printDirInfo( diAfter );
-	printDirInfo( diIntersect );
+      if( ev[0].fflags & NOTE_DELETE )
+        fprintf(stdout, "- %s\n", ndip->path);
+      else {
+        diAfter = parseDir( (char*) ndip->path);
+        diDifference = symmetricDifference(ndip->di, diAfter);
+        if( DEBUG ) {
+          printDirInfo( ndip->di );
+          printDirInfo( diAfter );
+          printDirInfo( diDifference );
+        }
+        else if( NULL != diDifference && diDifference->count > 0 )
+          fprintf(stdout, "%s %s%s%s\n",
+              (
+               // dir was non empty before and is non empty after
+               (NULL != ndip->di && NULL != diAfter &&
+                  // some thing has gone, iff #entries decreased
+                  (ndip->di->count > diAfter->count))
+               ||
+               // dir was non empty before and is empty after
+               // -> something is gone
+               (NULL != ndip->di && NULL == diAfter)
+              ) ? "-" : "+",
+              ndip->path,
+              // if path does not end with '/' insert one
+              ('/' == ndip->path[strlen(ndip->path)-1]) ? "" : "/",
+              diDifference->entries[0]);
+        else
+          fprintf(stdout, "%s\n", ndip->path);
       }
-      if( diIntersect->count > 0 )
-	fprintf(stdout, "%s %s%s%s\n",
-	    (
-	     // dir was non empty before and is non empty after
-	     (NULL != ndip->di && NULL != diAfter &&
-		// some thing has gone, iff #entries decreased
-		(ndip->di->count > diAfter->count))
-	     ||
-	     // dir was non empty before and is empty after
-	     // -> something is gone
-	     (NULL != ndip->di && NULL == diAfter)
-	    ) ? "-" : "+",
-	    ndip->path,
-	    // if path does not end with '/' insert one
-	    ('/' == ndip->path[strlen(ndip->path)-1]) ? "" : "/",
-	    diIntersect->entries[0]);
     }
     else
       fprintf(stdout, "%s\n", (char*) ev[0].udata);
