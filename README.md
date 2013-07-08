@@ -2,13 +2,13 @@
 
 Waits for write/rename events on files or directories and returns.
 
-Supports waiting on multiple files and _one_ directory (i'm on it).
-When waiting on a directory adding a file, or deleting a file will
-trigger a return. Everything else (like touching or writing) wil not
+Supports waiting on multiple files and _one_ directory (I'm on it).
+When waiting on a directory, adding a file, or deleting a file will
+trigger a return. Everything else (like touching or writing) will not
 trigger a return.
 
-This tool is inspired by inotifywait [1] and the original kqueue
-paper [2] and the lack of anything similar (to the best of my
+This tool is inspired by [inotifywait][1], the original [kqueue
+paper][2], and the lack of anything similar (to the best of my
 knowledge) on Mac OS X.
 
 ## Requirements
@@ -25,26 +25,24 @@ Waiting on directories does not work on Linux at the moment.
 
 ## Build
 
+To build this just type:
 
-To build this just type
-
-    make kqwait
-
+    make
 
 ## Usage
 
-Call it like this
+Call it like this:
 
     kqwait <file>[ <file>]+
 
-or this
+or this:
 
     kqwait <dir>[ <dir>]+
 
-Prints the file or directory that caused the tool to wake up and
-returns `0` if the expected event occured, `1` otherwise.
+Prints the file or directory that caused the tool to wake up, and
+returns `0`, if the expected event occured, `1` otherwise.
 
-When waiting on a dir a `+` character is prepended if a file was
+When waiting on a directory, a `+` character is prepended if a file was
 added, a `-` if a file was deleted.
 
 Use it in a shell script like this:
