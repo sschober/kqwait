@@ -1,11 +1,11 @@
 # kqwait
 
-Waits for write/rename events on files or directories and returns.
+Waits for write, rename and delete events on files and file creation and
+deletion events in directories and returns.
 
-Supports waiting on multiple files and _one_ directory (I'm on it).
-When waiting on a directory, adding a file, or deleting a file will
-trigger a return. Everything else (like touching or writing) will not
-trigger a return.
+Supports waiting on multiple files and directories.  When waiting on a
+directory, adding a file, or deleting a file will trigger a return.
+Everything else (like touching or writing) will not trigger a return.
 
 This tool is inspired by [inotifywait][1], the original [kqueue
 paper][2], and the lack of anything similar (to the best of my
@@ -15,7 +15,7 @@ knowledge) on Mac OS X.
 
 ### Mac OS X
 
- - Xcode
+ - Xcode (Command Line Tools suffice)
 
 ### Linux
 
@@ -53,7 +53,7 @@ Use it in a shell script like this:
 
 Or watch directories like this:
 
-    $ while ./kqwait somedir someother; do true; done
+    $ while ./kqwait somedir someotherdir; do true; done
     + somedir/a_file_was_added.txt
     - someotherdir/a_file_was_deleted.txt
 
@@ -63,6 +63,14 @@ There is (at least) one race condition in this code, when waiting
 for changes on directories. If several events happen on a directory
 in quick succession, this tool might catch an intermediate snapshot
 of that chain of events.
+
+Futhermore, don't mix files and directories on the command line, as this
+will produce an error at the moment:
+
+    $ ./kqwait test.txt sample/
+    fdopendir: Bad address
+
+(Here the file `test.txt` was written to.)
 
 # Author
 
