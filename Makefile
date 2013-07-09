@@ -2,7 +2,6 @@ trg=kqwait
 src=kqwait.c
 
 uname=$(strip $(shell uname))
-$(warning $(uname))
 
 ifeq "$(uname)" "Linux"
   INCLUDES=-I/usr/include/kqueue
@@ -19,4 +18,4 @@ $(trg): $(src)
 	cc $(OPTS) -o $@ $<
 
 clean:
-	rm -f $(trg)
+	rm -rf $(trg) $(trg).dSYM

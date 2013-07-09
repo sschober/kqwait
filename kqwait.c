@@ -8,18 +8,21 @@
 #include <string.h>
 
 /*
- * Waits for write on a file and returns.
+ * kqwait - wait for write events on a file or directory
+ * Sven Schober <sven.schober@uni-ulm.de>
  *
- * Inspired by inotifywait [1] and the original kqueue paper [2].
+ * Inspired by inotifywait[1] and the original kqueue paper[2].
  *
- * To build this just type
+ * To build this just type:
  *
- *    make kqwait
+ *     make
  *
- * Use it like this:
+ * Call it like this:
  *
- *    ./kqwait test.txt test2.txt
+ *     ./kqwait <file>[ <file>]+
  *
+ * Source: <https://github.com/sschober/kqwait>
+ * License: <https://github.com/sschober/kqwait/blob/master/README.md>
  *
  * [1]: https://github.com/rvoicilas/inotify-tools/wiki/
  * [2]: http://people.freebsd.org/~jlemon/papers/kqueue.pdf
