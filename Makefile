@@ -14,8 +14,11 @@ OPTS=$(INCLUDES) $(LIBS) -std=c99 -Wall -g
 
 ALL: $(trg)
 
-$(trg): $(src)
-	cc $(OPTS) -o $@ $<
+dirinfo.o: dirinfo.c
+	cc $(OPTS) -c -o $@ $<
+
+$(trg): $(src) dirinfo.o
+	cc $(OPTS) -o $@ dirinfo.o $<
 
 clean:
 	rm -rf $(trg) $(trg).dSYM
