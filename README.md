@@ -29,15 +29,18 @@ To build this just type:
 
     make
 
+If you want to check that everything is working correctly on your
+computer use:
+
+    make test
+
+This requires perl, with modules `IPC::Run` and `Test::More` installed. 
+
 ## Usage
 
 Call it like this:
 
-    kqwait <file>[ <file>]+
-
-or this:
-
-    kqwait <dir>[ <dir>]+
+    kqwait <file|dir>[ <file|dir>]+
 
 Prints the file or directory that caused the tool to wake up, and
 returns `0`, if the expected event occured, `1` otherwise.
@@ -63,14 +66,6 @@ There is (at least) one race condition in this code, when waiting
 for changes on directories. If several events happen on a directory
 in quick succession, this tool might catch an intermediate snapshot
 of that chain of events.
-
-Futhermore, don't mix files and directories on the command line, as this
-will produce an error at the moment:
-
-    $ ./kqwait test.txt sample/
-    fdopendir: Bad address
-
-(Here the file `test.txt` was written to.)
 
 # Author
 

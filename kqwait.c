@@ -42,7 +42,7 @@
 
 void debug(int result, struct kevent* ev){
   if(DEBUG){
-    fprintf(stderr, "%d %d %s %s %s\n",
+    fprintf(stderr, "res: %d, id: %d, %s %s %s\n",
         result,
         (int) ev[0].ident,
         ev[0].fflags & NOTE_RENAME ? "REN" : "",
@@ -76,17 +76,19 @@ int main(int argc, char** argv){
     int fd = -1;
 
     if( stat( filePath, &sb) == -1 ){
-      perror("stat");
+      fprintf(stderr,"Cannot stat: %s : ", filePath);
+      perror("");
       exit(EXIT_FAILURE);
     }
+    ndi[i].type = F;
+    ndi[i].path = filePath;
+    ndi[i].di   = NULL;
     if( S_ISDIR( sb.st_mode) ){
+      ndi[i].type = D;
       diBefore = parseDir( filePath );
-      ndi[i].path = filePath;
       ndi[i].di = diBefore;
-      data = &ndi[i];
     }
-    else
-      data = filePath;
+    data = &ndi[i];
 
     if( -1 == fd ){
       fd = open(filePath, O_RDONLY);
@@ -104,31 +106,35 @@ int main(int argc, char** argv){
   int kq = kqueue();
 
   int result =
-    kevent(kq, ev, filesCount, ev, 1, NULL);
+    kevent(kq, ev, filesCount, ev, filesCount, NULL);
 
   if( result > 0 ){
+    if(DEBUG) fprintf(stderr, "num events: %d\n",result);
     debug(result, ev);
-    /* this is the culprit for issue #7
-     *
-     * if there was a single dir this yields true and we treat every entry as a
-     * dir, which is obviuosly not what we want
-     *
-     * TODO: save type information in udata and act based on that
-     */
-    if( S_ISDIR( sb.st_mode ) ){
-      namedDirInfo *ndip;
-      ndip = ev[0].udata;
-      if( ev[0].fflags & NOTE_DELETE )
-        fprintf(stdout, "- %s\n", ndip->path);
-      else {
+    namedDirInfo *ndip;
+    ndip = ev[0].udata;
+    if( ev[0].fflags & NOTE_DELETE ){
+      fprintf(stdout, "- %s\n", ndip->path);
+    }
+    else {
+      if( F == ndip->type){
+        if( DEBUG ) fprintf(stderr,"di was null!");
+        /* event data points to file */
+        fprintf(stdout, "%s\n", ndip->path);
+      }
+      else{
+        /* event data points to directory */
         diAfter = parseDir( (char*) ndip->path);
         diDifference = symmetricDifference(ndip->di, diAfter);
         if( DEBUG ) {
+          fprintf(stderr, "saved:\n");
           printDirInfo( ndip->di );
+          fprintf(stderr, "diAfter:\n");
           printDirInfo( diAfter );
+          fprintf(stderr, "difference:\n");
           printDirInfo( diDifference );
         }
-        else if( NULL != diDifference && diDifference->count > 0 )
+        if( NULL != diDifference && diDifference->count > 0 )
           fprintf(stdout, "%s %s%s%s\n",
               (
                // dir was non empty before and is non empty after
@@ -148,8 +154,6 @@ int main(int argc, char** argv){
           fprintf(stdout, "%s\n", ndip->path);
       }
     }
-    else
-      fprintf(stdout, "%s\n", (char*) ev[0].udata);
     return 0;
   }
   else{

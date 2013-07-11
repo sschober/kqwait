@@ -5,16 +5,20 @@
  * Very simplistic array-like structure to hold directory entries.
  */
 typedef struct {
-  int count;        /* Number of elements */
-  char** entries;   /* Pointer to the entries */
+  int     count;        /* Number of elements */
+  char**  entries;   /* Pointer to the entries */
 } dirInfo;
 
+enum dirInfoType { F=1,D };
 /**
- * dirInfo structur with a lable
+ * dirInfo structur with path information
+ *
+ * dirInfo pointer is null for files
  */
 typedef struct {
-  char* path;
-  dirInfo* di;
+  enum dirInfoType   type;
+  char*         path;
+  dirInfo*      di;
 } namedDirInfo;
 
 /**
