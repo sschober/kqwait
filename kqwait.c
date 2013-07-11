@@ -108,6 +108,13 @@ int main(int argc, char** argv){
 
   if( result > 0 ){
     debug(result, ev);
+    /* this is the culprit for issue #7
+     *
+     * if there was a single dir this yields true and we treat every entry as a
+     * dir, which is obviuosly not what we want
+     *
+     * TODO: save type information in udata and act based on that
+     */
     if( S_ISDIR( sb.st_mode ) ){
       namedDirInfo *ndip;
       ndip = ev[0].udata;
