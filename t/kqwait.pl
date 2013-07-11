@@ -47,7 +47,7 @@ do_test(
   "should return correct filename when creating a file in dir"
 );
 
-# wait on directory and create one file
+# wait on directory and delete one file
 do_test(
   "$kqwait_command $test_dir/",
   "rm $test_file",
