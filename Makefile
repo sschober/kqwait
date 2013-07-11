@@ -22,3 +22,6 @@ $(trg): $(src) dirinfo.o
 
 clean:
 	rm -rf $(trg) $(trg).dSYM
+
+test: $(trg)
+	prove -v t/*.pl
