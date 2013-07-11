@@ -40,10 +40,18 @@ This requires perl, with modules `IPC::Run` and `Test::More` installed.
 
 Call it like this:
 
-    kqwait <file|dir>[ <file|dir>]+
+    kqwait [-d] [-v] [-h] <file|dir>[ <file|dir>]+
 
-Prints the file or directory that caused the tool to wake up, and
-returns `0`, if the expected event occured, `1` otherwise.
+### Options
+
+ - `d` - enable debugging
+ - `v` - print version
+ - `h` - print help
+
+### Operation
+
+The tool prints the file or directory that caused the tool to wake up,
+and returns `0`, if the expected event occured, `1` otherwise.
 
 When waiting on a directory, a `+` character is prepended if a file was
 added, a `-` if a file was deleted.
