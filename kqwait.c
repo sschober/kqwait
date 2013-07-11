@@ -118,7 +118,6 @@ int main(int argc, char** argv){
     }
     else {
       if( F == ndip->type){
-        if( DEBUG ) fprintf(stderr,"di was null!");
         /* event data points to file */
         fprintf(stdout, "%s\n", ndip->path);
       }
