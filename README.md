@@ -60,6 +60,23 @@ Or watch directories like this:
     + somedir/a_file_was_added.txt
     - someotherdir/a_file_was_deleted.txt
 
+When watching directories, write events concerning existing files
+currently won't trigger a return. Only creation and deletion will do
+that. If you would like to track all events at the same time you can use
+shell mechanisms to do that:
+
+    while ./kqwait dir1/ dir1/*; do
+      # something
+    done
+
+If you want to use the file that caused the return the simplest thing I
+came accross is this:
+
+    ./kqwait sample sample/* | (read file && echo $file) do true; done
+
+That is a bit quirky as we don't actually use the loop body, but reading into
+`$file` and accessing it in the loop body was not possible for me in bash.
+
 ## Note
 
 There is (at least) one race condition in this code, when waiting

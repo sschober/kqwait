@@ -6,8 +6,10 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "dirinfo.h"
+#include "version.h"
 
 /*
  * kqwait - wait for write events on a file or directory
@@ -34,11 +36,10 @@
  * [2]: http://people.freebsd.org/~jlemon/papers/kqueue.pdf
  */
 
-#ifndef DEBUG
-#define DEBUG 0
-#endif
 
 #define TARGET_EVTS NOTE_RENAME|NOTE_WRITE|NOTE_DELETE
+
+int DEBUG;
 
 void debug(int result, struct kevent* ev){
   if(DEBUG){
@@ -52,14 +53,44 @@ void debug(int result, struct kevent* ev){
   }
 }
 
-int main(int argc, char** argv){
+void usage(char* cmd){
+  printf("usage: %s [-d] [-h] <file> [ <file>]+\n\n", cmd);
+  printf("\t-d\tenable debugging output\n");
+  printf("\t-v\tprint version\n");
+  printf("\t-h\tprint help\n");
+}
 
-  if(2 > argc){
-    printf("usage: %s <file> [ <file>]+\n", argv[0]);
+void version(){
+  printf("kqwait - Version %s\n", VERSION);
+}
+
+int main(int argc, char** argv){
+  char *cmd = argv[0];
+  DEBUG = 0;
+  char ch;
+  while((ch = getopt(argc, argv, "dhv")) != -1) {
+    switch(ch){
+      case 'd':
+        DEBUG = 1;
+        break;
+      case 'v':
+        version();
+        return 0;
+      case 'h':
+      default:
+        usage(cmd);
+        return 0;
+    }
+  }
+  argc -= optind;
+  argv += optind;
+  if(DEBUG) fprintf(stderr,"argc %d, optind: %d\n",argc,optind);
+  if(1 > argc){
+    usage(cmd);
     return 1;
   }
 
-  int filesCount = argc - 1;
+  int filesCount = argc;
 
   struct kevent ev[filesCount];
 
@@ -70,7 +101,7 @@ int main(int argc, char** argv){
   dirInfo *diBefore, *diAfter, *diDifference;
 
   for(int i = 0; i < filesCount; i++){
-    char *filePath = argv[i+1];
+    char *filePath = argv[i];
     void *data;
 
     int fd = -1;

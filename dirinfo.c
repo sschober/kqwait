@@ -5,9 +5,7 @@
 
 #include "dirinfo.h"
 
-#ifndef DEBUG
-#define DEBUG 0
-#endif
+extern int DEBUG;
 
 void printDirInfo( dirInfo *di ){
   if( NULL == di ) return;
