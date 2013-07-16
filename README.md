@@ -77,13 +77,15 @@ shell mechanisms to do that:
       # something
     done
 
-If you want to use the file that caused the return the simplest thing I
-came accross is this:
+If you want to use the file that caused the return, you can assign the
+output to a variable:
 
-    ./kqwait sample sample/* | (read file && echo $file) do true; done
+    while file=`./kqwait dir1/`; do
+      echo "Event on $file"
+    done
 
-That is a bit quirky as we don't actually use the loop body, but reading into
-`$file` and accessing it in the loop body was not possible for me in bash.
+See a more advanced script, that does some simple dispatch based on file
+ending under `samples/`.
 
 ## Note
 
