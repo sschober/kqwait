@@ -1,6 +1,6 @@
 trg=kqwait
 src=kqwait.c
-git_version := $(shell git describe --abbrev=4 --dirty --always)
+git_version := $(shell git describe --abbrev=4 --dirty --always | sed "s;kqwait-;;")
 uname=$(strip $(shell uname))
 
 ifeq "$(uname)" "Linux"
