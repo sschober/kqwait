@@ -7,8 +7,14 @@ fi
 
 while file=$(./kqwait $@); do
   case "$file" in
+    +*.pm)
+      echo "A new perl module appeared: ${file##+ }"
+      ;;
+    -*.pm)
+      echo "A perl module disappeared: ${file##- }"
+      ;;
     *.pm)
-      echo "A perl module: $file"
+      echo "A perl module was modified: $file"
       ;;
     *)
       echo "Ignoring $file"
