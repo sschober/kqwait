@@ -20,7 +20,7 @@ version.h:
 dirinfo.o: dirinfo.c
 	cc $(OPTS) -c -o $@ $<
 
-$(trg): $(src) dirinfo.o version.h
+$(trg): $(src) dirinfo.o
 	cc $(OPTS) -o $@ dirinfo.o $<
 
 clean:
