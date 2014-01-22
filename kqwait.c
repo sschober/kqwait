@@ -8,6 +8,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef LINUX
+#include <getopt.h>
+#endif
+
 #include "dirinfo.h"
 #include "version.h"
 
@@ -93,6 +97,7 @@ int main(int argc, char** argv){
   int filesCount = argc;
 
   struct kevent ev[filesCount];
+  // TODO: zero the struct
 
   struct stat sb;
 
