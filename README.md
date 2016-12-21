@@ -1,7 +1,8 @@
 # kqwait
 
 Waits for write, rename and delete events on files and file creation and
-deletion events in directories and returns.
+deletion events in directories and returns. Please note, that simply 
+touching a file will not trigger a return.
 
 Supports waiting on multiple files and directories.  When waiting on a
 directory, adding a file, or deleting a file will trigger a return.
