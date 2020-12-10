@@ -50,6 +50,7 @@ dirInfo* parseDir(char *filePath) {
   struct dirent *dp;
   while(NULL != (dp = readdir(d))){
     if( '.' == dp->d_name[0]) continue;
+    if( DEBUG ) fprintf(stderr, "%s,", dp->d_name);
     di = addEntry(di, dp->d_name);
   }
   return di;

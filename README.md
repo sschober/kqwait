@@ -31,7 +31,7 @@ To build this just type:
     make
 
 If you want to check that everything is working correctly on your
-computer use:
+machine use:
 
     make test
 
@@ -45,8 +45,8 @@ Call it like this:
 
 ### Options
 
- - `d` - enable debugging
- - `v` - print version
+ - `d` - enable debug output on stderr
+ - `v` - print version and exit
  - `h` - print help
 
 ### Operation
@@ -69,8 +69,8 @@ Or watch directories like this:
     + somedir/a_file_was_added.txt
     - someotherdir/a_file_was_deleted.txt
 
-When watching directories, write events concerning existing files
-currently won't trigger a return. Only creation and deletion will do
+*When watching directories, write events concerning existing files
+currently won't trigger a return.* Only creation and deletion will do
 that. If you would like to track all events at the same time you can use
 shell mechanisms to do that:
 
@@ -97,7 +97,7 @@ of that chain of events.
 
 # Author
 
-Sven Schober <sven.schober@uni-ulm.de>
+Sven Schober <sv3sch@gmail.com>
 
 [1]: https://github.com/rvoicilas/inotify-tools/wiki/
 [2]: http://people.freebsd.org/~jlemon/papers/kqueue.pdf
@@ -105,7 +105,7 @@ Sven Schober <sven.schober@uni-ulm.de>
 # License
 
 ````
-Copyright (c) 2013, Sven Schober
+Copyright (c) 2020, Sven Schober
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

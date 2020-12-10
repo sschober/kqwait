@@ -98,11 +98,10 @@ int main(int argc, char** argv){
 
   namedDirInfo ndi[filesCount];
 
-  dirInfo *diBefore, *diAfter, *diDifference;
+  dirInfo *diAfter, *diDifference;
 
   for(int i = 0; i < filesCount; i++){
     char *filePath = argv[i];
-    void *data;
 
     int fd = -1;
 
@@ -111,15 +110,17 @@ int main(int argc, char** argv){
       perror("");
       exit(EXIT_FAILURE);
     }
+    // assume we watch a file
     ndi[i].type = F;
     ndi[i].path = filePath;
-    ndi[i].di   = NULL;
+    ndi[i].di   = NULL; // no dirinfo needed in that case
+
     if( S_ISDIR( sb.st_mode) ){
+      // nope, it's a directory
       ndi[i].type = D;
-      diBefore = parseDir( filePath );
-      ndi[i].di = diBefore;
+      // so we need some info, what the contents of the directory were, when we started watching
+      ndi[i].di = parseDir( filePath );
     }
-    data = &ndi[i];
 
     if( -1 == fd ){
       fd = open(filePath, O_RDONLY);
@@ -131,7 +132,7 @@ int main(int argc, char** argv){
 
     EV_SET(&ev[i], fd, EVFILT_VNODE,
         EV_ADD | EV_ENABLE | EV_CLEAR,
-        TARGET_EVTS, 0, data);
+        TARGET_EVTS, 0, &ndi[i]);
   }
 
   int kq = kqueue();
